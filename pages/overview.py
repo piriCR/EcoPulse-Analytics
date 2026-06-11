@@ -182,12 +182,6 @@ def render(filters: dict) -> None:
     top_col3.metric("Gases detectados", len(focus_summary.get("detected_gases", [])))
     top_col4.metric("Última actualización", datetime.now().strftime("%H:%M"))
 
-    st.markdown("### Estado general")
-    state = RISK_STATES.get(focus_summary.get("risk_state", "unknown"), RISK_STATES["unknown"])
-    main_col1, main_col2, main_col3 = st.columns(3)
-    main_col1.metric("Ciudad foco", f"{focus_location['city_name']} ({focus_location['country_code']})")
-    main_col2.markdown(_risk_badge_html(focus_summary.get("risk_state", "unknown")), unsafe_allow_html=True)
-    main_col3.metric("AQI europeo", _format_numeric(focus_summary.get("european_aqi")))
 
     if focus_summary.get("critical_indicators", 0) > 0:
         st.warning(
