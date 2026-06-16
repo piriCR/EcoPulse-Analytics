@@ -3,6 +3,7 @@ from __future__ import annotations
 from datetime import date, datetime
 from typing import Any
 
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
 from config.cities import get_city_location
@@ -70,6 +71,7 @@ def fetch_city_snapshot(city_key: str, start_date: str | date | datetime | None 
             "city_name": location["city_name"],
             "country_code": location["country_code"],
             "region_name": location["region_name"],
+            "european_aqi": current_payload.get("european_aqi"),
         }
     )
 

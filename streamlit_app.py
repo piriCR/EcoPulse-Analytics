@@ -22,32 +22,10 @@ def build_sidebar_filters() -> dict:
 
     date_from = st.sidebar.date_input("Desde", value=defaults["date_from"], help="Inicio del periodo analítico global.")
     date_to = st.sidebar.date_input("Hasta", value=defaults["date_to"], help="Fin del periodo analítico global.")
-    cities = st.sidebar.multiselect(
-        "Ciudades",
-        options=DEFAULT_CITIES,
-        default=defaults["cities"],
-        help="Ciudades que definen el contexto común entre pantallas.",
-    )
-    focus_city = st.sidebar.selectbox(
-        "Ciudad foco",
-        options=cities or DEFAULT_CITIES,
-        index=0,
-        help="Ciudad principal para las páginas que usan un foco único.",
-    )
-    primary_pollutant = st.sidebar.selectbox(
-        "Contaminante principal",
-        options=PRIMARY_POLLUTANTS,
-        index=0,
-        help="Contaminante de referencia compartido por el contexto general.",
-    )
-
     return normalize_filters(
         {
             "date_from": date_from,
             "date_to": date_to,
-            "cities": cities,
-            "focus_city": focus_city,
-            "primary_pollutant": primary_pollutant,
         }
     )
 
@@ -55,8 +33,6 @@ def build_sidebar_filters() -> dict:
 
 def main() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon=":material/public:", layout="wide")
-    st.title(APP_TITLE)
-    st.caption(APP_SUBTITLE)
 
     filters = build_sidebar_filters()
     st.session_state["global_filters"] = filters
