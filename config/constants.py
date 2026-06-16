@@ -21,10 +21,15 @@ PRIMARY_POLLUTANTS = [
 ]
 
 DEFAULT_CITIES = [
-    "Costa Rica",
+    "San José",
     "Lima",
     "Santiago",
     "Ciudad de México",
+    "Buenos Aires",
+    "Bogotá",
+    "Quito",
+    "Montevideo",
+    "Asunción",
 ]
 
 RISK_STATES = {
