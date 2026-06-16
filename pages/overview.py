@@ -3,7 +3,9 @@ from __future__ import annotations
 from datetime import datetime
 
 import pandas as pd
+# pyrefly: ignore [missing-import]
 import plotly.express as px
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
 from components.section_header import render_section_header
@@ -39,12 +41,12 @@ def _summary_to_frame(summaries: list[dict]) -> pd.DataFrame:
     frame = pd.DataFrame(summaries)
     if frame.empty:
         return frame
-    frame["AQI europeo"] = pd.to_numeric(frame.get("european_aqi"), errors="coerce")
+    frame["Índice Global (AQI)"] = pd.to_numeric(frame.get("european_aqi"), errors="coerce")
     frame["Riesgo"] = frame["risk_state"].map(lambda state: RISK_STATES.get(state, RISK_STATES["unknown"])["label"])
-    frame["Contaminante crítico"] = frame["dominant_pollutant"].fillna("—")
-    frame["Severidad"] = frame["dominant_ratio"].apply(_format_numeric)
-    frame["Indicadores activos"] = frame["available_indicators"].fillna(0).astype(int)
-    return frame[["city_name", "country_code", "AQI europeo", "Riesgo", "Contaminante crítico", "Severidad", "Indicadores activos"]]
+    frame["Peor Contaminante"] = frame["dominant_pollutant"].fillna("—")
+    frame["Nivel de Severidad"] = frame["dominant_ratio"].apply(_format_numeric)
+    frame["Datos Disponibles"] = frame["available_indicators"].fillna(0).astype(int)
+    return frame[["city_name", "country_code", "Índice Global (AQI)", "Riesgo", "Peor Contaminante", "Nivel de Severidad", "Datos Disponibles"]]
 
 
 def _build_overview_summary(summaries: list[dict], selected_count: int) -> dict[str, object]:
@@ -177,33 +179,37 @@ def render(filters: dict) -> None:
         st.warning("La ciudad foco no devolvió datos estructurados.")
 
     top_col1, top_col2, top_col3, top_col4 = st.columns(4)
-    top_col1.metric("Ciudades consultadas", len(selected_cities))
-    top_col2.metric("Indicadores activos", focus_summary.get("available_indicators", 0))
-    top_col3.metric("Gases detectados", len(focus_summary.get("detected_gases", [])))
-    top_col4.metric("Última actualización", datetime.now().strftime("%H:%M"))
+    top_col1.metric("Ciudades consultadas", len(selected_cities), help="Cantidad de ciudades de América Latina incluidas en esta vista conjunta.")
+    top_col2.metric("Indicadores activos", focus_summary.get("available_indicators", 0), help="Número de contaminantes (PM2.5, Ozono, etc.) con datos numéricos actuales.")
+    top_col3.metric("Gases detectados", len(focus_summary.get("detected_gases", [])), help="Diferentes tipos de gases atmosféricos medidos en el aire en este momento.")
+    top_col4.metric("Última actualización", datetime.now().strftime("%H:%M"), help="Hora exacta en la que se descargaron los últimos registros de las estaciones/satélites.")
 
 
     if focus_summary.get("critical_indicators", 0) > 0:
         st.warning(
             f"Se detectaron {focus_summary['critical_indicators']} indicadores por encima de umbral en la ciudad foco; "
-            f"el contaminante más crítico es {focus_summary.get('dominant_pollutant', '—')}.")
+            f"el contaminante más crítico es {focus_summary.get('dominant_pollutant', '—')}.",
+            icon=":material/warning:"
+        )
     else:
         risk_state = focus_summary.get("risk_state", "unknown")
         state = RISK_STATES.get(risk_state, RISK_STATES["unknown"])
         st.success(
-            f"La ciudad foco se mantiene dentro de la banda visual {state['label'].lower()} con el catálogo actual de indicadores.")
+            f"La ciudad foco se mantiene dentro de la banda visual {state['label'].lower()} con el catálogo actual de indicadores.",
+            icon=":material/check_circle:"
+        )
 
     overview_summary = _build_overview_summary(city_snapshots, len(selected_cities))
     st.markdown("### Resumen OMS y cobertura")
     oms_col1, oms_col2, oms_col3 = st.columns(3)
-    oms_col1.metric("Ciudades en riesgo", overview_summary["cities_in_risk"])
-    oms_col2.metric("Ciudades críticas", overview_summary["cities_critical"])
-    oms_col3.metric("Cobertura de consulta", f"{overview_summary['coverage_pct']:.0f}%")
+    oms_col1.metric("Ciudades en riesgo", overview_summary["cities_in_risk"], help="Ciudades cuyo nivel general de calidad del aire es 'Moderado' o peor según estándares de la OMS.")
+    oms_col2.metric("Ciudades críticas", overview_summary["cities_critical"], help="Ciudades con al menos un contaminante superando los umbrales de peligro inmediato para la salud.")
+    oms_col3.metric("Cobertura de consulta", f"{overview_summary['coverage_pct']:.0f}%", help="Porcentaje de éxito del sistema al conectarse con las estaciones de las ciudades seleccionadas.")
 
     left_col, right_col = st.columns([1.35, 1])
     with left_col:
-        st.markdown("### Indicadores unificados")
-        st.caption("Tabla de lectura rápida con valor, unidad y presencia por contaminante.")
+        st.markdown("### Radiografía de Contaminantes")
+        st.caption("Detalle de los elementos en el aire de la ciudad foco. Valores más altos implican mayor contaminación y riesgo respiratorio.")
         focus_table = _build_focus_table(focus_current)
         st.dataframe(focus_table, use_container_width=True, hide_index=True)
 
@@ -214,28 +220,36 @@ def render(filters: dict) -> None:
             st.info("No se detectaron gases con valor positivo en el conjunto actual de indicadores.")
 
     with right_col:
-        st.markdown("### Ranking rápido de ciudades")
-        st.caption("Ordenado por Severidad y número de indicadores activos.")
+        st.markdown("### Ranking de Impacto en la Salud")
+        st.caption("Compara la urgencia ambiental de la región. El 'Nivel de Severidad' indica qué tan lejos se está de un aire seguro (mayor número = más peligroso).")
         ranking_frame = _summary_to_frame(city_snapshots)
         if ranking_frame.empty:
             st.info("No hay ciudades suficientes para construir el ranking.")
         else:
-            ranking_frame = ranking_frame.sort_values(by=["Severidad", "Indicadores activos"], ascending=[False, False])
+            ranking_frame = ranking_frame.sort_values(by=["Nivel de Severidad", "Datos Disponibles"], ascending=[False, False])
 
-            st.dataframe(ranking_frame, use_container_width=True, hide_index=True)
+            label_colors = {state["label"]: state["color"] for state in RISK_STATES.values()}
+            def highlight_risk(val):
+                color = label_colors.get(val, "transparent")
+                if color != "transparent":
+                    return f'background-color: {color}33; color: {color}; font-weight: bold;'
+                return ''
+            
+            styled_ranking = ranking_frame.style.map(highlight_risk, subset=["Riesgo"])
+            st.dataframe(styled_ranking, use_container_width=True, hide_index=True)
 
             worst_city = ranking_frame.iloc[0]
             best_city = ranking_frame.iloc[-1]
             
-            st.metric("Ciudad con peor estado OMS", f"{worst_city['city_name']}")
-            st.metric("Ciudad con mejor estado OMS", f"{best_city['city_name']}")
+            st.error(f"**ALERTA CRÍTICA:** **{worst_city['city_name']}** lidera el impacto negativo con nivel **{worst_city['Riesgo'].upper()}**. El agente perjudicial más crítico es el **{worst_city['Peor Contaminante']}**.", icon=":material/dangerous:")
+            st.success(f"**REFERENCIA REGIONAL:** **{best_city['city_name']}** mantiene la mejor calidad del aire con un nivel **{best_city['Riesgo'].upper()}**.", icon=":material/verified:")
 
-    st.markdown("### Tendencia reciente")
+    st.markdown("### Evolución Temporal del Aire")
     trend_frame = focus_trend.copy()
     if trend_frame.empty:
         st.info("No se pudo construir una tendencia temporal con los datos recibidos.")
     else:
-        st.caption("Eje horizontal: hora. Eje vertical: valor registrado del indicador.")
+        st.caption("Observa cómo ha variado la contaminación en las últimas horas. Los picos altos usualmente coinciden con horas de alto tráfico vehicular o industrial.")
         figure = _trend_figure(trend_frame, filters.get("primary_pollutant", "pm2_5"))
         st.plotly_chart(figure, use_container_width=True)
 

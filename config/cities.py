@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 CITY_CATALOG = {
-    "Costa Rica": {
+    "San José": {
         "city_name": "San José",
         "country_code": "CR",
         "region_name": "San José",
@@ -41,8 +41,58 @@ CITY_CATALOG = {
         "location_scope": "city",
         "source_system": "open_meteo",
     },
+    "Buenos Aires": {
+        "city_name": "Buenos Aires",
+        "country_code": "AR",
+        "region_name": "Buenos Aires",
+        "latitude": -34.6037,
+        "longitude": -58.3816,
+        "timezone_name": "America/Argentina/Buenos_Aires",
+        "location_scope": "city",
+        "source_system": "open_meteo",
+    },
+    "Bogotá": {
+        "city_name": "Bogotá",
+        "country_code": "CO",
+        "region_name": "Bogotá",
+        "latitude": 4.7110,
+        "longitude": -74.0721,
+        "timezone_name": "America/Bogota",
+        "location_scope": "city",
+        "source_system": "open_meteo",
+    },
+    "Quito": {
+        "city_name": "Quito",
+        "country_code": "EC",
+        "region_name": "Pichincha",
+        "latitude": -0.1807,
+        "longitude": -78.4678,
+        "timezone_name": "America/Guayaquil",
+        "location_scope": "city",
+        "source_system": "open_meteo",
+    },
+    "Montevideo": {
+        "city_name": "Montevideo",
+        "country_code": "UY",
+        "region_name": "Montevideo",
+        "latitude": -34.9011,
+        "longitude": -56.1645,
+        "timezone_name": "America/Montevideo",
+        "location_scope": "city",
+        "source_system": "open_meteo",
+    },
+    "Asunción": {
+        "city_name": "Asunción",
+        "country_code": "PY",
+        "region_name": "Asunción",
+        "latitude": -25.2637,
+        "longitude": -57.5759,
+        "timezone_name": "America/Asuncion",
+        "location_scope": "city",
+        "source_system": "open_meteo",
+    },
 }
 
 
 def get_city_location(city_key: str) -> dict:
-    return CITY_CATALOG.get(city_key, CITY_CATALOG["Costa Rica"])
+    return CITY_CATALOG.get(city_key, CITY_CATALOG["San José"])

@@ -52,7 +52,7 @@ def _build_params(city_key: str, start_date: str | date | datetime | None, end_d
     return params
 
 
-@st.cache_data(ttl=900, show_spinner=False)
+@st.cache_data(ttl=1200, show_spinner=False)
 def fetch_city_snapshot(city_key: str, start_date: str | date | datetime | None = None, end_date: str | date | datetime | None = None) -> ProviderResponse:
     location = get_city_location(city_key)
     payload = get_json(OPEN_METEO_AIR_QUALITY_URL, params=_build_params(city_key, start_date, end_date))
