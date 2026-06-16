@@ -188,6 +188,8 @@ def render(filters: dict) -> None:
             f"Se detectaron {focus_summary['critical_indicators']} indicadores por encima de umbral en la ciudad foco; "
             f"el contaminante más crítico es {focus_summary.get('dominant_pollutant', '—')}.")
     else:
+        risk_state = focus_summary.get("risk_state", "unknown")
+        state = RISK_STATES.get(risk_state, RISK_STATES["unknown"])
         st.success(
             f"La ciudad foco se mantiene dentro de la banda visual {state['label'].lower()} con el catálogo actual de indicadores.")
 
