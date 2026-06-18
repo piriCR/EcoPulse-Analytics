@@ -1,6 +1,4 @@
-# pyrefly: ignore [missing-import]
 import plotly.express as px
-# pyrefly: ignore [missing-import]
 import streamlit as st
 import pandas as pd
 
@@ -10,148 +8,62 @@ from providers.open_meteo_air_quality import fetch_city_snapshot
 from config.constants import DEFAULT_CITIES, RISK_STATES
 from utils.page_context import get_runtime_filters
 
-
-def _format_numeric(value: object) -> str:
-    if value is None:
-        return "—"
-    if isinstance(value, float) and pd.isna(value):
-        return "—"
-    if isinstance(value, (int, float)):
-        return f"{value:.1f}"
-    return str(value)
-
-
-def _build_focus_table(current_frame: pd.DataFrame) -> pd.DataFrame:
-    if current_frame.empty:
-        return pd.DataFrame(columns=["Indicador", "Valor", "Unidad", "Estado", "Presencia"])
-
-    display = current_frame.copy()
-    display["Indicador"] = display["pollutant_name"]
-    display["Valor"] = display["value"].apply(_format_numeric)
-    display["Unidad"] = display["unit"].fillna("—")
-    display["Estado"] = display["risk_state"].map(lambda state: RISK_STATES.get(state, RISK_STATES["unknown"])["label"])
-    display["Presencia"] = display["present"].map(lambda present: "Sí" if present else "No")
-    return display[["Indicador", "Valor", "Unidad", "Estado", "Presencia"]]
-
+# Guía de salud
+GUIA_SALUD = {
+    "pm2_5": {"nombre": "Partículas Finas (PM2.5)", "impacto": "Penetran profundamente en pulmones y sangre. Riesgo de inflamación sistémica."},
+    "pm10": {"nombre": "Partículas Gruesas (PM10)", "impacto": "Se depositan en vías respiratorias superiores, causando tos e irritación."},
+    "o3": {"nombre": "Ozono (O3)", "impacto": "Actúa como oxidante que quema el tejido pulmonar, agravando el asma."},
+    "no2": {"nombre": "Dióxido de Nitrógeno (NO2)", "impacto": "Debilita las defensas pulmonares, aumentando la susceptibilidad a infecciones."},
+    "so2": {"nombre": "Dióxido de Azufre (SO2)", "impacto": "Provoca el estrechamiento de vías aéreas, dificultando la respiración."},
+    "co": {"nombre": "Monóxido de Carbono (CO)", "impacto": "Impide que el oxígeno llegue al cerebro y corazón, causando fatiga extrema."}
+}
 
 def render(filters: dict) -> None:
-    render_section_header(
-        "Monitoreo en Vivo",
-        "Centro operativo para vigilancia ambiental detallada."
-    )
-    st.caption("Vista enfocada en la detección rápida de riesgos ambientales para una ciudad específica.")
-
-    st.sidebar.header("Filtros de Monitoreo")
-    focus_city = st.sidebar.selectbox(
-        "Ciudad foco",
-        options=DEFAULT_CITIES,
-        index=0,
-        help="Selecciona una ciudad para ver sus indicadores detallados."
-    )
-
-    granularity_map = {"hourly": "hora", "daily": "día", "weekly": "semana"}
-    reverse_map = {v: k for k, v in granularity_map.items()}
-    current_granularity = filters.get("granularity", "daily")
-    granularity_label = granularity_map.get(current_granularity, "día")
-
-    with st.spinner("Consultando calidad del aire..."):
-        try:
-            response = fetch_city_snapshot(
-                focus_city,
-                start_date=filters.get("date_from"),
-                end_date=filters.get("date_to")
-            )
-        except Exception as exc:
-            st.error(f"Error al consultar la ciudad foco: {exc}")
-            return
-
-    data = response.data
-    summary = data["summary"]
-    trend_frame = data["trend_frame"]
-    current_frame = data["current_frame"]
-    location = data["location"]
-
-    top_col1, top_col2 = st.columns([1.5, 1])
+    render_section_header("¿Cómo está el aire?", "Monitoreo ciudadano para tu salud.")
     
-    with top_col1:
-        render_live_risk_semaphore(
-            summary["risk_state"],
-            location["city_name"],
-            summary["dominant_pollutant"]
-        )
+    focus_city = st.sidebar.selectbox("Ciudad:", options=DEFAULT_CITIES)
+    
+    with st.spinner("Consultando datos ambientales..."):
+        response = fetch_city_snapshot(focus_city, start_date=filters.get("date_from"), end_date=filters.get("date_to"))
+        summary, current_frame = response.data["summary"], response.data["current_frame"]
+        dominant = summary.get("dominant_pollutant", "").lower()
 
-    with top_col2:
-        st.markdown("### Ubicación")
-        map_df = pd.DataFrame({'lat': [location['latitude']], 'lon': [location['longitude']]})
-        st.map(map_df, zoom=10, use_container_width=True)
+    # 1. Semáforo y Ubicación
+    c1, c2 = st.columns([1.5, 1])
+    with c1:
+        render_live_risk_semaphore(summary["risk_state"], response.data["location"]["city_name"], summary["dominant_pollutant"])
+    with c2:
+        st.map(pd.DataFrame({'lat': [response.data["location"]['latitude']], 'lon': [response.data["location"]['longitude']]}))
 
-    if summary.get("critical_indicators", 0) > 0:
-        st.warning(
-            f"Se detectaron {summary['critical_indicators']} indicadores por encima de umbral en {location['city_name']}; "
-            f"el contaminante más crítico es {summary.get('dominant_pollutant', '—')}.",
-            icon=":material/warning:"
-        )
-    else:
-        risk_state = summary.get("risk_state", "unknown")
-        state = RISK_STATES.get(risk_state, RISK_STATES["unknown"])
-        st.success(
-            f"{location['city_name']} se mantiene dentro de la banda visual {state['label'].lower()} con el catálogo actual de indicadores.",
-            icon=":material/check_circle:"
-        )
-
-    left_col, right_col = st.columns([1.2, 1.8])
-
-    with left_col:
-        st.markdown("### Radiografía de Contaminantes")
-        st.caption("Detalle de los elementos en el aire. Valores más altos implican mayor contaminación y riesgo respiratorio.")
-        focus_table = _build_focus_table(current_frame)
-        st.dataframe(focus_table, use_container_width=True, hide_index=True)
-
-        detected_gases = summary.get("detected_gases", [])
-        if detected_gases:
-            st.info(f"Gases detectados en el entorno: {', '.join(detected_gases)}")
-        else:
-            st.info("No se detectaron gases con valor positivo en el conjunto actual de indicadores.")
-
-    with right_col:
-        st.markdown("### Evolución Temporal del Aire")
-        st.caption("Observa cómo ha variado la contaminación recientemente.")
+    # 2. Diagnóstico Visual Directo
+    st.markdown("### 🔍 Reporte de Riesgos")
+    cols = st.columns(3)
+    
+    valid_data = current_frame.dropna(subset=['value'])
+    
+    for i, (_, row) in enumerate(valid_data.iterrows()):
+        key = str(row["pollutant_name"]).lower().strip()
+        info = GUIA_SALUD.get(key, {"nombre": row["pollutant_name"].upper(), "impacto": "Contaminante detectado."})
         
-        granularity = st.selectbox(
-            "Granularidad",
-            ["hora", "día", "semana"],
-            index=["hora", "día", "semana"].index(granularity_label),
-            key="granularity_select"
-        )
+        is_dominant = (key == dominant)
+        estado = row["risk_state"]
+        color = "#2ecc71" if estado == "good" else ("#f1c40f" if estado == "moderate" else "#e74c3c")
         
-        display_trend_frame = trend_frame.copy()
-        
-        if reverse_map[granularity] == "daily":
-            display_trend_frame = display_trend_frame.resample("D", on="timestamp").mean().reset_index()
-        elif reverse_map[granularity] == "weekly":
-            display_trend_frame = display_trend_frame.resample("W", on="timestamp").mean().reset_index()
+        # Estilos visuales
+        border_width = "4px" if is_dominant else "2px"
+        shadow = "0 4px 8px rgba(0,0,0,0.2)" if is_dominant else "none"
+        badge = '<div style="background-color:#e74c3c; color:white; padding:2px 8px; border-radius:10px; font-size:0.7em; margin-bottom:5px; display:inline-block;">CONTAMINANTE DOMINANTE</div><br>' if is_dominant else ""
 
-        pollutant = summary.get("dominant_pollutant") or filters.get("primary_pollutant", "pm2_5")
+        # HTML COMPACTO (Sin saltos de línea internos)
+        html_card = f'<div style="border:{border_width} solid {color}; padding:15px; border-radius:12px; text-align:center; height:280px; margin-bottom:20px; background-color:#ffffff; box-shadow:{shadow};">{badge}<div style="font-size:1.1em; font-weight:bold; margin-bottom:10px;">{info["nombre"]}</div><div style="font-size:1.6em; color:{color}; font-weight:bold; margin-bottom:10px;">{row["value"]:.1f} <span style="font-size:0.5em; color:#666;">{row["unit"]}</span></div><div style="font-size:0.85em; color:#444; line-height:1.4;">{info["impacto"]}</div></div>'
         
-        if pollutant and pollutant in display_trend_frame.columns and not display_trend_frame.empty:
-            chart = px.line(
-                display_trend_frame,
-                x="timestamp",
-                y=pollutant,
-                markers=True,
-                line_shape="linear",
-                title=f"Tendencia reciente de {pollutant.upper()} ({granularity})"
-            )
-            chart.update_traces(line=dict(width=3), marker=dict(size=6))
-            chart.update_layout(
-                height=400,
-                margin=dict(l=20, r=20, t=50, b=20),
-                yaxis=dict(title=f"{pollutant.upper()} concentración"),
-                xaxis=dict(title="Fecha/Hora")
-            )
-            st.plotly_chart(chart, use_container_width=True)
-        else:
-            st.info("No hay suficientes datos para construir la tendencia.")
+        with cols[i % 3]:
+            st.markdown(html_card, unsafe_allow_html=True)
 
+    st.write("---")
+    st.markdown("##### 💡 Entendiendo los riesgos")
+    st.caption("Los contaminantes afectan al cuerpo principalmente por inflamación y estrés oxidativo al entrar en el sistema respiratorio.")
+    
+    
 if __name__ == "__main__":
     render(get_runtime_filters())
