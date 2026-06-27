@@ -291,6 +291,11 @@ def render(filters: dict) -> None:
             "No se detectaron contaminantes por encima de los límites OMS."
         )
 
+    st.session_state["current_pollution_context"] = {
+        "page_name": "Alertas Sanitarias OMS",
+        "resumen_alertas": df[["Ciudad", "Estado OMS", "Contaminantes", "Indicadores críticos"]],
+        "detalle_contaminantes": detail_df if alert_details else "No hay alertas detalladas."
+    }
 
 if __name__ == "__main__":
     render(get_runtime_filters())

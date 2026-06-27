@@ -2,8 +2,12 @@ from __future__ import annotations
 
 import streamlit as st
 
+from dotenv import load_dotenv
+load_dotenv()
+
 from config.constants import APP_SUBTITLE, APP_TITLE, NAVIGATION_PAGES, PRIMARY_POLLUTANTS, DEFAULT_CITIES
 from utils.filters import get_default_filters, normalize_filters
+from components.chat_ui import render_global_chat
 
 PAGE_PATHS = {
     "Inicio": "pages/overview.py",
@@ -58,6 +62,11 @@ def main() -> None:
     pg = st.navigation({"": pages_spec}, position="top")
     pg.run()
 
+    # Render global chat in the sidebar (after pages have added their own sidebar elements)
+    with st.sidebar:
+        st.divider()
+        render_global_chat()
 
 if __name__ == "__main__":
+
     main()

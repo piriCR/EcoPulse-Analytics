@@ -28,6 +28,14 @@ def render(filters: dict) -> None:
         summary, current_frame = response.data["summary"], response.data["current_frame"]
         dominant = summary.get("dominant_pollutant", "").lower()
 
+        # Guardar contexto global para el chat de IA
+        st.session_state["current_pollution_context"] = {
+            "page_name": "Monitoreo en Vivo",
+            "ciudad": focus_city,
+            "resumen_estado": summary,
+            "datos_contaminantes": current_frame
+        }
+
     # 1. Semáforo y Ubicación
     c1, c2 = st.columns([1.5, 1])
     with c1:

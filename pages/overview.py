@@ -220,6 +220,12 @@ def render(filters: dict) -> None:
         with st.expander("Información de diagnóstico (Errores de conexión)"):
             for error in errors:
                 st.write(f"- {error}")
+                
+    st.session_state["current_pollution_context"] = {
+        "page_name": "Inicio (Panorama Global)",
+        "kpis_resumen": overview_summary,
+        "ranking_ciudades": ranking_frame
+    }
 
 if __name__ == "__main__":
     render(get_runtime_filters())
