@@ -98,5 +98,11 @@ def render(filters: dict) -> None:
             </div>
             """, unsafe_allow_html=True)
 
+    st.session_state["current_pollution_context"] = {
+        "page_name": "Ciudad Comparativa",
+        "ciudades_seleccionadas": selected_cities,
+        "datos_comparativos": frame
+    }
+
 if __name__ == "__main__":
     render(get_runtime_filters())
