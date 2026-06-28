@@ -1,5 +1,7 @@
 import os
+# pyrefly: ignore [missing-import]
 import google.generativeai as genai
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
 def init_gemini():

@@ -6,7 +6,6 @@ NAVIGATION_PAGES = [
     "Monitoreo en Vivo",
     "Ciudad Comparativa",
     "Evolución Temporal",
-    "Alertas OMS",
     "Perfil de Ciudad",
 ]
 
