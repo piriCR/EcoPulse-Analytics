@@ -5,8 +5,7 @@ NAVIGATION_PAGES = [
     "Inicio",
     "Monitoreo en Vivo",
     "Ciudad Comparativa",
-    "Evolución Temporal",
-    "Perfil de Ciudad",
+    "Glosario",
 ]
 
 PRIMARY_POLLUTANTS = [
@@ -20,15 +19,22 @@ PRIMARY_POLLUTANTS = [
 ]
 
 DEFAULT_CITIES = [
-    "San José",
-    "Lima",
-    "Santiago",
-    "Ciudad de México",
-    "Buenos Aires",
-    "Bogotá",
-    "Quito",
-    "Montevideo",
-    "Asunción",
+    "San José, CR",
+    "Alajuela, CR",
+    "Cartago, CR",
+    "Heredia, CR",
+    "Guanacaste, CR",
+    "Puntarenas, CR",
+    "Limón, CR",
+]
+
+COMPARISON_DEFAULT_CITIES = [
+    "San José, CR",
+    "Santiago, CL",
+    "Ciudad de México, MX",
+    "Bogotá, CO",
+    "Buenos Aires, AR",
+    "Washington D.C., US"
 ]
 
 RISK_STATES = {

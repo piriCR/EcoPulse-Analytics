@@ -1,7 +1,7 @@
 import streamlit as st
 from config.constants import RISK_STATES
 
-def render_live_risk_semaphore(risk_state: str, city_name: str, dominant_pollutant: str | None) -> None:
+def render_live_risk_semaphore(risk_state: str, city_name: str, dominant_pollutant: str | None, consensus_status: str | None = None) -> None:
     state = RISK_STATES.get(risk_state, RISK_STATES["unknown"])
     color = state['color']
 
@@ -12,6 +12,12 @@ def render_live_risk_semaphore(risk_state: str, city_name: str, dominant_polluta
         icon_svg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>'
     else:
         icon_svg = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+
+    consensus_html = ""
+    if consensus_status == "Alta Confianza":
+        consensus_html = '<div style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background-color: rgba(16, 185, 129, 0.15); color: #10b981; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(16, 185, 129, 0.3);"><svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg> Consenso de Modelos: Alta Confianza</div>'
+    elif consensus_status:
+        consensus_html = f'<div style="margin-top: 1rem; display: inline-flex; align-items: center; gap: 0.5rem; background-color: rgba(245, 158, 11, 0.15); color: #f59e0b; padding: 0.35rem 0.75rem; border-radius: 9999px; font-size: 0.8rem; font-weight: 700; border: 1px solid rgba(245, 158, 11, 0.3);"><svg style="width: 1rem; height: 1rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg> Consenso de Modelos: {consensus_status}</div>'
 
     html_content = f"""<style>
 .eco-semaphore-container {{ display: flex; flex-direction: column; gap: 1.5rem; }}
@@ -48,6 +54,8 @@ def render_live_risk_semaphore(risk_state: str, city_name: str, dominant_polluta
 </div>
 <div class="eco-semaphore-status">
 <span class="eco-semaphore-badge">{state["label"]}</span>
+<br>
+{consensus_html}
 </div>
 </div>
 <div class="eco-metrics-grid">
