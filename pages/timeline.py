@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
 from components.section_header import render_section_header

@@ -1,7 +1,9 @@
 from __future__ import annotations
 
+# pyrefly: ignore [missing-import]
 import streamlit as st
 
+# pyrefly: ignore [missing-import]
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -14,7 +16,6 @@ PAGE_PATHS = {
     "Monitoreo en Vivo": "pages/monitoring.py",
     "Ciudad Comparativa": "pages/comparison.py",
     "Evolución Temporal": "pages/timeline.py",
-    "Alertas OMS": "pages/alerts.py",
     "Perfil de Ciudad": "pages/city_profile.py",
 }
 
@@ -37,6 +38,21 @@ def build_sidebar_filters() -> dict:
 
 def main() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon=":material/public:", layout="wide")
+
+    # CSS global para ocultar los íconos de enlace en los títulos (header anchors)
+    st.markdown("""<style>
+    /* Ocultar anclas (links) automáticas de los encabezados de Streamlit */
+    .stMarkdown a.header-anchor {
+        display: none !important;
+    }
+    .stMarkdown h1 a, .stMarkdown h2 a, .stMarkdown h3 a, .stMarkdown h4 a, .stMarkdown h5 a, .stMarkdown h6 a {
+        display: none !important;
+    }
+    /* Estilos generales para asegurar consistencia */
+    * {
+        scroll-behavior: smooth;
+    }
+    </style>""", unsafe_allow_html=True)
 
     filters = build_sidebar_filters()
     st.session_state["global_filters"] = filters

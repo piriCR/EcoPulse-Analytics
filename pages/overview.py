@@ -99,29 +99,54 @@ def render(filters: dict) -> None:
         </div>
     """, unsafe_allow_html=True)
 
-    # 1.5 SECCIÓN DE NAVEGACIÓN Y MÓDULOS
-    st.markdown("### :material/dashboard_customize: Explora la Plataforma")
-    st.caption("Herramientas analíticas diseñadas para evaluar el riesgo ambiental.")
-    
-    mod1, mod2, mod3 = st.columns(3)
-    with mod1:
-        with st.container(border=True, height=170):
-            st.markdown("#### :material/monitoring: Monitoreo en Vivo")
-            st.markdown("Análisis forense de una **ciudad específica**. Curvas de tendencia de gases y alertas inmediatas.")
-    with mod2:
-        with st.container(border=True, height=170):
-            st.markdown("#### :material/map: Ciudad Comparativa")
-            st.markdown("Contrasta el impacto de múltiples regiones con **mapas de calor** y niveles de toxicidad cara a cara.")
-    with mod3:
-        with st.container(border=True, height=170):
-            st.markdown("#### :material/notifications_active: Alertas Sanitarias")
-            st.markdown("Notificaciones automatizadas que detectan si los gases superan los **umbrales seguros de la OMS**.")
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown("""<style>
+.eco-module-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 1.25rem; margin-top: 1rem; margin-bottom: 2rem; }
+.eco-module-card { padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 1rem; background-color: var(--secondary-background-color); transition: all 0.3s; display: flex; flex-direction: column; gap: 0.75rem; text-decoration: none; }
+.eco-module-card:hover { border-color: #4ade80; transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+.eco-module-icon { width: 2rem; height: 2rem; color: #4ade80; }
+.eco-module-icon-bg { width: 3.5rem; height: 3.5rem; border-radius: 0.75rem; background-color: rgba(74, 222, 128, 0.1); display: flex; align-items: center; justify-content: center; }
+.eco-module-title { font-size: 1.125rem; font-weight: 700; color: var(--text-color); margin: 0; }
+.eco-module-desc { font-size: 0.875rem; color: var(--text-color); opacity: 0.8; margin: 0; line-height: 1.5; }
+.eco-section-header { display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.25rem; }
+.eco-section-icon { width: 1.75rem; height: 1.75rem; color: #4ade80; }
+.eco-section-title { font-size: 1.5rem; font-weight: 700; color: var(--text-color); margin: 0; }
+.eco-section-subtitle { font-size: 0.875rem; color: var(--text-color); opacity: 0.7; margin: 0 0 1.5rem 0; }
+</style>
+<div class="eco-section-header">
+<svg class="eco-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"></path></svg>
+<h3 class="eco-section-title">Explora la Plataforma</h3>
+</div>
+<p class="eco-section-subtitle">Herramientas analíticas diseñadas para evaluar el riesgo ambiental.</p>
+<div class="eco-module-grid">
+<div class="eco-module-card">
+<div class="eco-module-icon-bg">
+<svg class="eco-module-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path></svg>
+</div>
+<h4 class="eco-module-title">Monitoreo en Vivo</h4>
+<p class="eco-module-desc">Análisis forense de una <strong>ciudad específica</strong>. Curvas de tendencia de gases y alertas inmediatas.</p>
+</div>
+<div class="eco-module-card">
+<div class="eco-module-icon-bg">
+<svg class="eco-module-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"></path></svg>
+</div>
+<h4 class="eco-module-title">Ciudad Comparativa</h4>
+<p class="eco-module-desc">Contrasta el impacto de múltiples regiones con <strong>mapas de calor</strong> y niveles de toxicidad cara a cara.</p>
+</div>
+<div class="eco-module-card">
+<div class="eco-module-icon-bg">
+<svg class="eco-module-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path></svg>
+</div>
+<h4 class="eco-module-title">Alertas Sanitarias</h4>
+<p class="eco-module-desc">Notificaciones automatizadas que detectan si los gases superan los <strong>umbrales seguros de la OMS</strong>.</p>
+</div>
+</div>""", unsafe_allow_html=True)
 
     # 2. SECCIÓN DE DATOS GLOBALES
-    st.markdown("### :material/public: Panorama Ambiental Actual")
-    st.caption("Visión general de capitales seleccionadas para demostración rápida.")
+    st.markdown("""<div class="eco-section-header" style="margin-top: 1rem;">
+<svg class="eco-section-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3.055 11H5a2 2 0 012 2v1a2 2 0 002 2 2 2 0 012 2v2.945M8 3.935V5.5A2.5 2.5 0 0010.5 8h.5a2 2 0 012 2 2 2 0 104 0 2 2 0 012-2h1.064M15 20.488V18a2 2 0 012-2h3.064M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+<h3 class="eco-section-title">Panorama Ambiental Actual</h3>
+</div>
+<p class="eco-section-subtitle">Visión general de capitales seleccionadas para demostración rápida.</p>""", unsafe_allow_html=True)
 
     selected_cities = list(DEFAULT_CITIES[:5]) # 5 ciudades de demostración
     
@@ -143,22 +168,66 @@ def render(filters: dict) -> None:
 
     overview_summary = _build_overview_summary(city_snapshots, len(selected_cities))
     
-    # KPIs Estilizados
-    kpi_col1, kpi_col2, kpi_col3, kpi_col4 = st.columns(4)
-    with kpi_col1:
-        st.info(f"**Nodos Analizados**\n### {len(selected_cities)}", icon=":material/location_city:")
-    with kpi_col2:
-        val = overview_summary["cities_in_risk"]
-        if val > 0: st.warning(f"**En Alerta (OMS)**\n### {val}", icon=":material/warning:")
-        else: st.success(f"**En Alerta (OMS)**\n### {val}", icon=":material/shield:")
-    with kpi_col3:
-        val = overview_summary["cities_critical"]
-        if val > 0: st.error(f"**Riesgo Crítico**\n### {val}", icon=":material/emergency:")
-        else: st.success(f"**Riesgo Crítico**\n### {val}", icon=":material/check_circle:")
-    with kpi_col4:
-        st.success(f"**Sincronizado**\n### {datetime.now().strftime('%H:%M')}", icon=":material/sync:")
-
-    st.markdown("<br>", unsafe_allow_html=True)
+    # KPIs Estilizados con HTML y CSS
+    val_risk = overview_summary["cities_in_risk"]
+    val_crit = overview_summary["cities_critical"]
+    time_str = datetime.now().strftime('%H:%M')
+    nodes = len(selected_cities)
+    
+    risk_color = "#eab308" if val_risk > 0 else "#22c55e"
+    risk_icon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path>' if val_risk > 0 else '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path>'
+    
+    crit_color = "#ef4444" if val_crit > 0 else "#22c55e"
+    crit_icon = '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>' if val_crit > 0 else '<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>'
+    
+    st.markdown(f"""<style>
+.eco-kpi-grid {{ display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; }}
+.eco-kpi-card {{ padding: 1.25rem; border: 1px solid var(--border-color); border-radius: 1rem; background-color: var(--secondary-background-color); display: flex; align-items: center; gap: 1rem; transition: all 0.3s; }}
+.eco-kpi-card:hover {{ transform: translateY(-2px); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }}
+.eco-kpi-icon-wrapper {{ width: 3rem; height: 3rem; border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }}
+.eco-kpi-icon {{ width: 1.5rem; height: 1.5rem; }}
+.eco-kpi-content {{ display: flex; flex-direction: column; }}
+.eco-kpi-value {{ font-size: 1.5rem; font-weight: 700; color: var(--text-color); line-height: 1.2; margin: 0; }}
+.eco-kpi-label {{ font-size: 0.875rem; color: var(--text-color); opacity: 0.7; margin: 0; font-weight: 600; text-transform: uppercase; letter-spacing: 0.05em; }}
+</style>
+<div class="eco-kpi-grid">
+<div class="eco-kpi-card" style="border-left: 4px solid #3b82f6;">
+<div class="eco-kpi-icon-wrapper" style="background-color: rgba(59, 130, 246, 0.1); color: #3b82f6;">
+<svg class="eco-kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4"></path></svg>
+</div>
+<div class="eco-kpi-content">
+<p class="eco-kpi-value">{nodes}</p>
+<p class="eco-kpi-label">Nodos Analizados</p>
+</div>
+</div>
+<div class="eco-kpi-card" style="border-left: 4px solid {risk_color};">
+<div class="eco-kpi-icon-wrapper" style="background-color: {risk_color}20; color: {risk_color};">
+<svg class="eco-kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">{risk_icon}</svg>
+</div>
+<div class="eco-kpi-content">
+<p class="eco-kpi-value">{val_risk}</p>
+<p class="eco-kpi-label">En Alerta (OMS)</p>
+</div>
+</div>
+<div class="eco-kpi-card" style="border-left: 4px solid {crit_color};">
+<div class="eco-kpi-icon-wrapper" style="background-color: {crit_color}20; color: {crit_color};">
+<svg class="eco-kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">{crit_icon}</svg>
+</div>
+<div class="eco-kpi-content">
+<p class="eco-kpi-value">{val_crit}</p>
+<p class="eco-kpi-label">Riesgo Crítico</p>
+</div>
+</div>
+<div class="eco-kpi-card" style="border-left: 4px solid #10b981;">
+<div class="eco-kpi-icon-wrapper" style="background-color: rgba(16, 185, 129, 0.1); color: #10b981;">
+<svg class="eco-kpi-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+</div>
+<div class="eco-kpi-content">
+<p class="eco-kpi-value">{time_str}</p>
+<p class="eco-kpi-label">Sincronizado</p>
+</div>
+</div>
+</div>""", unsafe_allow_html=True)
 
     # 3. GRÁFICAS Y RANKINGS
     left_col, right_col = st.columns([1.2, 1])
@@ -166,8 +235,11 @@ def render(filters: dict) -> None:
     
     with left_col:
         with st.container(border=True):
-            st.markdown("#### :material/air: Estado de la Calidad del Aire")
-            st.caption("Proporción de ciudades según su nivel de seguridad ambiental para la población.")
+            st.markdown("""<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+<svg style="width: 1.5rem; height: 1.5rem; color: #3b82f6;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+<h4 style="margin: 0; font-weight: 600;">Estado de la Calidad del Aire</h4>
+</div>
+<p style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; margin-bottom: 1rem;">Proporción de ciudades según su nivel de seguridad ambiental para la población.</p>""", unsafe_allow_html=True)
             if not ranking_frame.empty:
                 risk_counts = ranking_frame['Riesgo'].value_counts().reset_index()
                 risk_counts.columns = ['Estado Ambiental', 'Cantidad de Ciudades']
@@ -193,8 +265,11 @@ def render(filters: dict) -> None:
             
     with right_col:
         with st.container(border=True):
-            st.markdown("#### :material/masks: ¿Qué estamos respirando?")
-            st.caption("Conciencia ambiental: áreas prioritarias para promover entornos saludables.")
+            st.markdown("""<div style="display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem;">
+<svg style="width: 1.5rem; height: 1.5rem; color: #a855f7;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20.618 5.984A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016zM12 9v2m0 4h.01"></path></svg>
+<h4 style="margin: 0; font-weight: 600;">¿Qué estamos respirando?</h4>
+</div>
+<p style="font-size: 0.85rem; color: var(--text-color); opacity: 0.7; margin-bottom: 1rem;">Conciencia ambiental: áreas prioritarias para promover entornos saludables.</p>""", unsafe_allow_html=True)
             if not ranking_frame.empty:
                 ranking_display = ranking_frame.sort_values(by=["Nivel de Severidad"], ascending=[False])
                 
