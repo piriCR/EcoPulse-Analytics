@@ -15,18 +15,36 @@ PAGE_PATHS = {
     "Inicio": "pages/overview.py",
     "Monitoreo en Vivo": "pages/monitoring.py",
     "Ciudad Comparativa": "pages/comparison.py",
-    "Evolución Temporal": "pages/timeline.py",
-    "Perfil de Ciudad": "pages/city_profile.py",
+    "Glosario": "pages/glossary.py",
 }
 
 
 
 def build_sidebar_filters() -> dict:
     defaults = get_default_filters()
-    st.sidebar.header("Filtros globales")
+    
+    st.sidebar.markdown("""
+        <div class="flex items-center gap-2 mb-2 mt-4">
+            <svg class="text-emerald-500" style="width: 24px; height: 24px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+            <h2 class="text-xl font-bold m-0 p-0" style="color: var(--text-color);">Filtros globales</h2>
+        </div>
+    """, unsafe_allow_html=True)
 
-    date_from = st.sidebar.date_input("Desde", value=defaults["date_from"], help="Inicio del periodo analítico global.")
-    date_to = st.sidebar.date_input("Hasta", value=defaults["date_to"], help="Fin del periodo analítico global.")
+    st.sidebar.markdown("""
+        <div class="flex items-center gap-2 mb-[-1rem] mt-2">
+            <svg class="text-emerald-400" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span class="text-sm font-semibold" style="color: var(--text-color);">Desde</span>
+        </div>
+    """, unsafe_allow_html=True)
+    date_from = st.sidebar.date_input("Desde_hidden", value=defaults["date_from"], help="Inicio del periodo analítico global.", label_visibility="collapsed")
+    
+    st.sidebar.markdown("""
+        <div class="flex items-center gap-2 mb-[-1rem] mt-2">
+            <svg class="text-emerald-400" style="width: 20px; height: 20px; flex-shrink: 0;" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+            <span class="text-sm font-semibold" style="color: var(--text-color);">Hasta</span>
+        </div>
+    """, unsafe_allow_html=True)
+    date_to = st.sidebar.date_input("Hasta_hidden", value=defaults["date_to"], help="Fin del periodo analítico global.", label_visibility="collapsed")
     return normalize_filters(
         {
             "date_from": date_from,
@@ -40,7 +58,16 @@ def main() -> None:
     st.set_page_config(page_title=APP_TITLE, page_icon=":material/public:", layout="wide")
 
     # CSS global para ocultar los íconos de enlace en los títulos (header anchors)
-    st.markdown("""<style>
+    st.markdown("""
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+    tailwind.config = {
+        corePlugins: {
+            preflight: false,
+        }
+    }
+    </script>
+    <style>
     /* Ocultar anclas (links) automáticas de los encabezados de Streamlit */
     .stMarkdown a.header-anchor {
         display: none !important;
