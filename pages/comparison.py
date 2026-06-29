@@ -48,7 +48,21 @@ def render(filters: dict) -> None:
                     wind = weather_res.data.get("wind_speed")
                     
                 summary, location, current_frame = response.data["summary"], response.data["location"], response.data["current_frame"]
+                trend_frame = response.data.get("trend_frame")
                 
+                # Dynamic aggregation based on date filter
+                if trend_frame is not None and not trend_frame.empty:
+                    numeric_means = trend_frame.select_dtypes(include='number').mean().to_dict()
+                    from providers.normalization import build_current_frame, summarize_current_frame
+                    current_frame = build_current_frame(numeric_means)
+                    new_summary = summarize_current_frame(current_frame)
+                    new_summary["european_aqi"] = numeric_means.get("european_aqi", summary.get("european_aqi"))
+                    # Maintain static city info in summary
+                    for k in ["city_key", "city_name", "country_code", "region_name"]:
+                        if k in summary:
+                            new_summary[k] = summary[k]
+                    summary = new_summary
+
                 pollutants_dict = {row["pollutant_name"]: row["value"] for _, row in current_frame.iterrows()} if not current_frame.empty else {}
                 codes_dict = {str(row["pollutant_code"]).lower().strip(): row["value"] for _, row in current_frame.iterrows()} if not current_frame.empty else {}
                 
@@ -75,6 +89,8 @@ def render(filters: dict) -> None:
         return
 
     frame = pd.DataFrame(city_data_list).fillna(0)
+    if not frame.empty and "AQI" in frame.columns:
+        frame = frame.sort_values(by="AQI", ascending=False).reset_index(drop=True)
 
     alerts_list = []
     for _, row in frame.iterrows():
@@ -269,7 +285,7 @@ def render(filters: dict) -> None:
             chart_bar = px.bar(plot_frame, x="city_name", y=compare_metric, color="Riesgo",
                            color_discrete_map={state["label"]: state["color"] for state in RISK_STATES.values()},
                            text_auto='.1f', labels={"city_name": "Ciudad", compare_metric: metric_labels.get(compare_metric, compare_metric)})
-            chart_bar.update_layout(paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=20))
+            chart_bar.update_layout(xaxis={'categoryorder': 'total descending'}, paper_bgcolor="rgba(0,0,0,0)", plot_bgcolor="rgba(0,0,0,0)", margin=dict(t=20))
             st.plotly_chart(chart_bar, use_container_width=True, theme=None)
 
         with col_scatter:
