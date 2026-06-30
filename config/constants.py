@@ -34,7 +34,8 @@ COMPARISON_DEFAULT_CITIES = [
     "Ciudad de México, MX",
     "Bogotá, CO",
     "Buenos Aires, AR",
-    "Washington D.C., US"
+    "Washington D.C., US",
+    "Nueva Delhi, IN"
 ]
 
 RISK_STATES = {
