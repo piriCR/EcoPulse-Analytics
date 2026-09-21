@@ -419,7 +419,8 @@ def render(filters: dict) -> None:
         with col_dl1:
             csv_data = report_df.to_csv(index=False).encode('utf-8')
             st.download_button(
-                label="📥 Descargar Reporte CSV",
+                label="Descargar Reporte CSV",
+                icon=":material/download:",
                 data=csv_data,
                 file_name="reporte_calidad_aire.csv",
                 mime="text/csv",
@@ -433,7 +434,8 @@ def render(filters: dict) -> None:
                 with pd.ExcelWriter(excel_buffer, engine='openpyxl') as writer:
                     report_df.to_excel(writer, index=False, sheet_name='Reporte')
                 st.download_button(
-                    label="📥 Descargar Reporte Excel",
+                    label="Descargar Reporte Excel",
+                    icon=":material/download:",
                     data=excel_buffer.getvalue(),
                     file_name="reporte_calidad_aire.xlsx",
                     mime="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",

@@ -1,107 +1,171 @@
 import os
-# pyrefly: ignore [missing-import]
-import google.generativeai as genai
-# pyrefly: ignore [missing-import]
 import streamlit as st
+import google.generativeai as genai
 
 def init_gemini():
     """Initializes the Gemini API client using the key from environment or secrets."""
-    # Attempt to get API key from os.environ (loaded via python-dotenv) or st.secrets
-    api_key = os.environ.get("GEMINI_API_KEY") or (st.secrets.get("GEMINI_API_KEY") if hasattr(st, "secrets") else None)
-    
+    api_key = os.environ.get("GEMINI_API_KEY")
     if not api_key:
-        st.error("⚠️ No se encontró la API Key de Gemini. Por favor configura GEMINI_API_KEY en tu archivo .env")
+        try:
+            if hasattr(st, "secrets"):
+                api_key = st.secrets.get("GEMINI_API_KEY")
+        except Exception:
+            api_key = None
+            
+    if not api_key:
+        st.error("No se encontró la API Key de Gemini. Por favor configura GEMINI_API_KEY en tu archivo .env", icon=":material/warning:")
         return False
         
     genai.configure(api_key=api_key)
     return True
 
 def build_system_instruction(context_data: dict) -> str:
-    """Builds the system instruction prompt using the current application context."""
-    if not context_data:
-        return "Eres un experto ambiental analizando datos de calidad del aire. Responde de manera profesional, clara y concisa."
-
-    page_name = context_data.get("page_name", "Desconocida")
+    """Builds an optimized, compact system instruction prompt for fast response times."""
+    page_name = context_data.get("page_name", "General") if context_data else "General"
     
-    # Construir un resumen dinámico del contexto actual
-    context_str = f"PÁGINA ACTUAL DEL USUARIO: {page_name}\n"
-    context_str += "DATOS EN PANTALLA:\n"
-    
-    for key, value in context_data.items():
-        if key == "page_name":
-            continue
-        
-        if hasattr(value, "to_string"):
-            # Es un DataFrame o Series
-            val_str = value.to_string(index=False)
-        elif isinstance(value, list) or isinstance(value, dict):
+    context_str = f"PÁGINA ACTUAL: {page_name}\n"
+    if context_data:
+        context_str += "DATOS CLAVE EN PANTALLA:\n"
+        for key, value in context_data.items():
+            if key in ("page_name", "critical_pollutants"):
+                continue
+            if hasattr(value, "to_dict"):
+                try:
+                    if "city_name" in value.columns and "AQI" in value.columns:
+                        summary_items = []
+                        for _, r in value.head(5).iterrows():
+                            summary_items.append(f"- {r.get('city_name', '')}: AQI={r.get('AQI', '')}, Riesgo={r.get('Riesgo', '')}, Dominante={r.get('Dominante', '')}")
+                        context_str += "- Resumen ciudades:\n" + "\n".join(summary_items) + "\n"
+                        continue
+                except Exception:
+                    pass
             val_str = str(value)
-        else:
-            val_str = str(value)
-            
-        context_str += f"- {key.replace('_', ' ').title()}:\n{val_str}\n\n"
+            if len(val_str) > 300:
+                val_str = val_str[:300] + "..."
+            context_str += f"- {key}: {val_str}\n"
 
     instruction = f"""
-    Eres un Científico de Datos Ambientales Senior, experto en geografía, meteorología y asistente de IA en el dashboard 'EcoPulse-Analytics'.
-    Tu objetivo es responder a las consultas del usuario basándote en los datos que el usuario está viendo actualmente en la pantalla, pero también tienes total libertad de responder preguntas abiertas, proporcionar contexto geográfico o climático, y explicar fenómenos ambientales (como inversiones térmicas o efectos de las cordilleras) utilizando tu amplio conocimiento general.
-    
+    Eres un Científico de Datos Ambientales y Especialista en Salud Pública Global en 'EcoPulse-Analytics'.
+
+    DIRECTIVAS DE RESPUESTA:
+    1. SÉ DIRECTO Y CONCISO: Prohibidas introducciones ceremoniosas, despedidas o disclaimers repetitivos. Ve directo al dato y a las conclusiones.
+    2. FORMATO EN VIÑETAS: Responde en 2 a 4 viñetas breves y claras con palabras clave y cifras en **negrita** (máximo 120 palabras).
+    3. RIESGOS A LA SALUD: Si preguntan sobre riesgos de salud de contaminantes (PM2.5, PM10, NO2, O3, SO2, CO), detalla directamente los efectos respiratorios, cardiovasculares y grupos de riesgo para cada contaminante relevante.
+    4. MORTALIDAD Y CIUDADES: Si preguntan sobre salud, mortalidad o ciudades del mundo (ej. Nueva Delhi, Santiago, etc.), responde directamente con las estimaciones reconocidas (OMS / GBD). NUNCA digas que no tienes datos por no estar en pantalla.
+    5. MEDICIONES EN PANTALLA: Si preguntan específicamente por datos del dashboard ("hoy", "en pantalla", "actual"), usa DATOS CLAVE EN PANTALLA.
+
     {context_str}
-    
-    INSTRUCCIONES:
-    1. Para análisis específicos de los datos actuales, utiliza la información proporcionada arriba (DATOS EN PANTALLA) para justificar tus conclusiones con cifras exactas.
-    2. Si el usuario hace preguntas generales o de contexto sobre geografía, contaminación o clima, responde utilizando tu conocimiento experto y datos históricos, pero SÉ DIRECTO Y AL PUNTO.
-    3. Brinda información rica y de alto valor, pero EVITA textos excesivamente largos, redundantes o repetitivos. La respuesta debe ser concisa, impactante y puntual, sin dar la sensación de estar leyendo un ensayo interminable.
-    4. Usa formato Markdown avanzado (viñetas cortas, negritas, tablas si es necesario) para darle una estructura ejecutiva y fácil de leer a tu respuesta. Elimina cualquier párrafo de relleno.
-    5. Explica el impacto en la salud de forma clara y directa si es relevante según los niveles de contaminantes.
-    6. Traduce siempre los acrónimos e indicadores a palabras sencillas que cualquier usuario entienda. Coloca primero la palabra clara y luego el indicador técnico original entre paréntesis (por ejemplo: "Partículas Finas (PM2.5)", "Calidad Buena (good)", "Monóxido de Carbono (CO)").
     """
     return instruction
 
-def generate_chat_response(messages: list, context_data: dict):
-    """Generates a response from Gemini using the chat history and dynamic context."""
-    if not init_gemini():
-        return "Error de configuración de la API."
+def _extract_chunk_text(chunk) -> str:
+    """Safely extracts text from a streaming chunk, handling candidates, parts, and filtering thoughts."""
+    texts = []
+    if hasattr(chunk, "candidates") and chunk.candidates:
+        for cand in chunk.candidates:
+            if hasattr(cand, "content") and hasattr(cand.content, "parts"):
+                for part in cand.content.parts:
+                    if getattr(part, "thought", False):
+                        continue
+                    t = getattr(part, "text", None)
+                    if t:
+                        texts.append(t)
+    if texts:
+        return "".join(texts)
+    try:
+        return chunk.text or ""
+    except Exception:
+        return ""
 
-    # Volvemos a "Flash" estándar, que ofrece excelente razonamiento y cuenta con cuota gratuita generosa.
-    model_name = "gemini-2.5-flash"
-    
+def generate_chat_response(messages: list, context_data: dict):
+    """Generates a rapid streaming response from Gemini using direct generate_content and low-latency models."""
+    if not init_gemini():
+        yield "**Error:** No se encontró la clave de API `GEMINI_API_KEY` en el archivo `.env` o en los secretos de Streamlit."
+        return
+
+    # Modelos ultrarrápidos: Flash-Lite primero (sin latencia de pensamiento)
+    models_to_try = [
+        "gemini-flash-lite-latest",
+        "gemini-flash-latest",
+        "gemini-2.5-flash-lite",
+        "gemini-2.5-flash"
+    ]
     system_instruction = build_system_instruction(context_data)
     
-    # Initialize the model with the system instruction
-    model = genai.GenerativeModel(
-        model_name=model_name,
-        system_instruction=system_instruction
-    )
+    generation_config = {
+        "temperature": 0.2,
+        "max_output_tokens": 400,
+    }
     
-    # Convert Streamlit chat history format to Gemini format
-    # Streamlit format: [{"role": "user"/"assistant", "content": "..."}]
-    # Gemini format: [{"role": "user"/"model", "parts": ["..."]}]
-    formatted_history = []
-    # We exclude the last message which is the current prompt, to pass it to send_message
+    # Configurar filtros de seguridad permisivos para salud pública
+    safety_settings = {
+        genai.types.HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT: genai.types.HarmBlockThreshold.BLOCK_NONE,
+        genai.types.HarmCategory.HARM_CATEGORY_HATE_SPEECH: genai.types.HarmBlockThreshold.BLOCK_NONE,
+        genai.types.HarmCategory.HARM_CATEGORY_HARASSMENT: genai.types.HarmBlockThreshold.BLOCK_NONE,
+        genai.types.HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT: genai.types.HarmBlockThreshold.BLOCK_NONE,
+    }
+    
+    # Limpiar y formatear el historial asegurando alternancia usuario/modelo
     history_to_format = messages[:-1] if messages else []
-    
+    first_user_idx = next((i for i, m in enumerate(history_to_format) if m.get("role") == "user"), None)
+    if first_user_idx is not None:
+        history_to_format = history_to_format[first_user_idx:]
+    else:
+        history_to_format = []
+        
+    formatted_contents = []
+    last_role = None
     for msg in history_to_format:
+        content = msg.get("content", "").strip()
+        if not content or content.startswith("**Error") or content.startswith("No se pudo") or content.startswith("Has alcanzado"):
+            continue
         role = "model" if msg["role"] == "assistant" else "user"
-        formatted_history.append({
-            "role": role,
-            "parts": [msg["content"]]
-        })
+        if role != last_role:
+            formatted_contents.append({
+                "role": role,
+                "parts": [content]
+            })
+            last_role = role
 
-    try:
-        # Start a chat session with history
-        chat = model.start_chat(history=formatted_history)
-        
-        # Send the latest message
-        latest_message = messages[-1]["content"] if messages else ""
-        response = chat.send_message(latest_message, stream=True)
-        
-        for chunk in response:
-            try:
-                if chunk.text:
-                    yield chunk.text
-            except Exception:
-                # Some chunks might not have text (e.g. safety blocks)
-                pass
-    except Exception as e:
-        yield f"Ocurrió un error al consultar a Gemini: {str(e)}"
+    if formatted_contents and formatted_contents[-1]["role"] == "user":
+        formatted_contents = formatted_contents[:-1]
+
+    latest_message = messages[-1]["content"] if messages else ""
+    formatted_contents.append({
+        "role": "user",
+        "parts": [latest_message]
+    })
+
+    response_yielded = False
+    last_error = None
+    for model_name in models_to_try:
+        try:
+            model = genai.GenerativeModel(
+                model_name=model_name,
+                system_instruction=system_instruction,
+                generation_config=generation_config,
+                safety_settings=safety_settings
+            )
+            response = model.generate_content(formatted_contents, stream=True)
+            
+            for chunk in response:
+                text_piece = _extract_chunk_text(chunk)
+                if text_piece:
+                    response_yielded = True
+                    yield text_piece
+                    
+            if response_yielded:
+                return
+        except Exception as e:
+            last_error = e
+            continue
+
+    if not response_yielded:
+        err_msg = str(last_error) if last_error else "Error de conexión con la IA"
+        if "429" in err_msg or "ResourceExhausted" in err_msg:
+            yield "Has alcanzado temporalmente el límite de consultas de la cuota gratuita de Gemini. Por favor espera un minuto y vuelve a intentarlo."
+        else:
+            yield f"No se pudo completar la consulta: {err_msg}"
+
+
 
