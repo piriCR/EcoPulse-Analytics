@@ -16,6 +16,10 @@ from utils.page_context import get_runtime_filters
 def render(filters: dict) -> None:
     render_section_header("Análisis Comparativo de Calidad del Aire", "Módulo de visualización intuitiva para la gestión ambiental.")
     st.caption("Selecciona las ciudades y compara su impacto ambiental mediante indicadores simplificados y mapas geográficos.")
+    st.info(
+        "**Nota metodológica:** Los valores de **AQI y concentraciones** en este módulo representan el **promedio temporal** del período seleccionado (por defecto, los últimos 7 días). Para consultar el valor puntual en tiempo real de la hora actual, visita el módulo de **Monitoreo en Vivo**.",
+        icon=":material/info:",
+    )
 
     # --- Sidebar ---
     st.sidebar.header("Configuración")
@@ -273,7 +277,7 @@ def render(filters: dict) -> None:
         st.caption("Selecciona un indicador. Ambos gráficos inferiores se actualizarán automáticamente para mostrar variaciones y correlaciones con el clima (OpenWeather).")
         
         available_metrics = ["AQI", "Severidad"] + [p for p in PRIMARY_POLLUTANTS if p in frame.columns]
-        metric_labels = {"AQI": "Calidad del Aire (AQI)", "Severidad": "Índice de Severidad", "pm2_5": "Partículas PM2.5", "pm10": "Partículas PM10"}
+        metric_labels = {"AQI": "AQI Promedio (Período)", "Severidad": "Índice de Severidad", "pm2_5": "Partículas PM2.5", "pm10": "Partículas PM10"}
         compare_metric = st.selectbox("Indicador Dinámico a Analizar", options=available_metrics, format_func=lambda x: metric_labels.get(x, x), key="metric_select_tab1")
         
         plot_frame = frame.sort_values(by=compare_metric, ascending=False)
@@ -299,7 +303,7 @@ def render(filters: dict) -> None:
                     size="AQI",
                     hover_name="city_name",
                     color_discrete_map={state["label"]: state["color"] for state in RISK_STATES.values()},
-                    labels={"temp": "Temperatura (°C)", compare_metric: metric_labels.get(compare_metric, compare_metric), "AQI": "AQI General"},
+                    labels={"temp": "Temperatura (°C)", compare_metric: metric_labels.get(compare_metric, compare_metric), "AQI": "AQI Promedio (Período)"},
                     size_max=25
                 )
                 chart_scatter.update_traces(marker=dict(line=dict(width=1, color='rgba(255,255,255,0.5)')))
@@ -315,6 +319,7 @@ def render(filters: dict) -> None:
     </div>
     <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text-color);">Ubicación Geográfica</h3>
 </div>""", unsafe_allow_html=True)
+        st.caption("El color y valor de cada ciudad en el mapa representan el **AQI Europeo Promedio** registrado durante el rango de fechas seleccionado.")
         lat_diff = frame["lat"].max() - frame["lat"].min()
         lon_diff = frame["lon"].max() - frame["lon"].min()
         max_diff = max(lat_diff, lon_diff) if not frame.empty else 0
@@ -328,7 +333,8 @@ def render(filters: dict) -> None:
         map_fig = px.scatter_mapbox(
             frame, lat="lat", lon="lon", color="AQI", text="city_name",
             center=dict(lat=frame["lat"].mean(), lon=frame["lon"].mean()), zoom=zoom_level,
-            hover_name="city_name", hover_data={"lat": False, "lon": False, "AQI": True},
+            hover_name="city_name", hover_data={"lat": False, "lon": False, "AQI": ":.1f"},
+            labels={"AQI": "AQI Promedio (Período)"},
             color_continuous_scale=[
                 [0.0, "#2E7D32"],  # Good (0-20)
                 [0.2, "#C0CA33"],  # Fair (20-40)
@@ -374,7 +380,7 @@ def render(filters: dict) -> None:
     </div>
     <h3 style="margin: 0; font-size: 1.5rem; font-weight: 700; color: var(--text-color);">Fichas Técnicas (Ranking: Peor a Mejor)</h3>
 </div>
-<p style="color: var(--text-color); opacity: 0.8; margin-bottom: 1.5rem;">Las siguientes fichas detallan el estado de cada ciudad, ordenadas de mayor a menor riesgo ambiental (comenzando por las de peor calidad del aire).</p>
+<p style="color: var(--text-color); opacity: 0.8; margin-bottom: 1.5rem;">Las siguientes fichas detallan el estado de cada ciudad, calculadas a partir del <strong>AQI promedio del período seleccionado</strong> y ordenadas de mayor a menor riesgo ambiental.</p>
 <style>
 .eco-city-card { padding: 1.5rem; border: 1px solid var(--border-color); border-radius: 1rem; background-color: var(--secondary-background-color); margin-bottom: 1.25rem; position: relative; overflow: hidden; transition: all 0.3s; display: flex; flex-direction: column; gap: 1rem; }
 .eco-city-card:hover { transform: translateY(-2px); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
@@ -410,6 +416,7 @@ def render(filters: dict) -> None:
             'country_code': 'Código_País',
             'lat': 'Latitud',
             'lon': 'Longitud',
+            'AQI': 'AQI_Promedio_Periodo',
             'temp': 'Temperatura_C',
             'hum': 'Humedad_Pct',
             'wind': 'Viento_m_s'
@@ -467,8 +474,8 @@ def render(filters: dict) -> None:
         <span class="eco-city-risk-badge" style="background-color: {risk_color}20; color: {risk_color}; border: 1px solid {risk_color}40;">{row['Riesgo']}</span>
     </div>
     <div class="eco-city-metrics">
-        <div class="eco-city-metric">
-            <span class="eco-city-metric-label">Calidad del Aire (AQI)</span>
+        <div class="eco-city-metric" title="AQI Europeo promedio acumulado en el período de fechas seleccionado">
+            <span class="eco-city-metric-label">AQI Promedio (Período)</span>
             <span class="eco-city-metric-value">{row['AQI']:.1f}</span>
         </div>
         <div class="eco-city-metric">
